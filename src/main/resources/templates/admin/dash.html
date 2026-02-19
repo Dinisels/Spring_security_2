@@ -65,11 +65,21 @@
     <div class="header">
         <h1>Административная панель</h1>
         <div class="btn-group">
-            <!-- Используйте правильный путь для logout -->
             <form th:action="@{/logout}" method="post" style="display: inline;">
                 <button type="submit" class="btn btn-outline-danger">Выйти</button>
             </form>
         </div>
+    </div>
+
+    <!-- БЛОК ДЛЯ СООБЩЕНИЙ - ДОБАВЬТЕ ЭТО -->
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
     <div class="table-container">
@@ -93,17 +103,16 @@
                 <td th:text="${user.email}">user@example.com</td>
                 <td>
                     <div class="roles-list">
-                                <span th:each="role : ${user.roles}"
-                                      th:text="${role.name}"
-                                      class="badge role-badge"
-                                      th:classappend="${role.name == 'ROLE_ADMIN'} ? 'bg-danger' : 'bg-primary'">
-                                    ROLE_USER
-                                </span>
+                        <span th:each="role : ${user.roles}"
+                              th:text="${role.name}"
+                              class="badge role-badge"
+                              th:classappend="${role.name == 'ROLE_ADMIN'} ? 'bg-danger' : 'bg-primary'">
+                            ROLE_USER
+                        </span>
                         <span th:if="${#lists.isEmpty(user.roles)}" class="text-muted">Нет ролей</span>
                     </div>
                 </td>
                 <td class="actions-cell">
-                    <!-- Правильные пути для редактирования и удаления -->
                     <a th:href="@{/admin/edit/{id}(id=${user.id})}" class="btn btn-sm btn-warning">Изменить</a>
                     <a th:href="@{/admin/delete/{id}(id=${user.id})}"
                        class="btn btn-sm btn-danger"
@@ -116,19 +125,15 @@
             </tbody>
         </table>
     </div>
-
     <div class="footer">
-        <!-- Правильный путь для добавления пользователя -->
         <a href="/admin/add" class="btn btn-primary">Добавить нового пользователя</a>
         <div class="text-muted">
             Всего пользователей: <span th:text="${#lists.size(users)}">0</span>
         </div>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Подтверждение удаления
     document.addEventListener('DOMContentLoaded', function() {
         const deleteButtons = document.querySelectorAll('.btn-danger');
         deleteButtons.forEach(button => {

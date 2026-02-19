@@ -4,13 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.kata.spring.boot_security.demo.Repository.RoleRepository;
-import ru.kata.spring.boot_security.demo.Repository.UserRepository;
 import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
+import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.HashSet;
 import java.util.List;
@@ -22,20 +21,14 @@ import java.util.Set;
 public class AdminController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    // Исключаем поле roles из автоматической привязки
-    @InitBinder
-    public void initBinder(WebDataBinder binder) {
-        binder.setDisallowedFields("roles");
-    }
+    private RoleService roleService;
 
     @GetMapping
     public String admin(Model model) {
-        List<User> users = userRepository.findAll();
+        List<User> users = userService.findAll();
         model.addAttribute("users", users);
         return "admin/dash";
     }
@@ -48,27 +41,40 @@ public class AdminController {
 
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable Integer id, Model model) {
-        User user = userRepository.findById(id).orElseThrow(() ->
+        User user = userService.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid user Id:" + id));
         model.addAttribute("user", user);
         return "admin/edit-user";
     }
 
     @PostMapping("/add")
-    public String addUser(@ModelAttribute User user,
-                          @RequestParam(value = "roles", required = false) List<String> roleNames,
-                          @RequestParam("confirmPassword") String confirmPassword,
-                          RedirectAttributes redirectAttributes) {
+    public String addUser(
+            @RequestParam("username") String username,
+            @RequestParam("age") Integer age,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestParam("confirmPassword") String confirmPassword,
+            @RequestParam(value = "roles", required = false) List<String> roleNames,
+            RedirectAttributes redirectAttributes) {
 
-        if (!user.getPassword().equals(confirmPassword)) {
+        // Проверка паролей
+        if (!password.equals(confirmPassword)) {
             redirectAttributes.addFlashAttribute("error", "Пароли не совпадают");
             return "redirect:/admin/add";
         }
 
+        // Создаем нового пользователя
+        User user = new User();
+        user.setUsername(username);
+        user.setAge(age);
+        user.setEmail(email);
+        user.setPassword(password);
+
+        // Обрабатываем роли
         if (roleNames != null && !roleNames.isEmpty()) {
             Set<Role> roles = new HashSet<>();
             for (String roleName : roleNames) {
-                Role role = roleRepository.findByName(roleName);
+                Role role = roleService.findByName(roleName);
                 if (role != null) {
                     roles.add(role);
                 }
@@ -76,39 +82,45 @@ public class AdminController {
             user.setRoles(roles);
         }
 
-        userRepository.save(user);
+        // Сохраняем пользователя
+        userService.save(user);
         redirectAttributes.addFlashAttribute("success", "Пользователь успешно добавлен");
         return "redirect:/admin";
     }
 
     @PostMapping("/edit/{id}")
-    public String editUser(@PathVariable Integer id,
-                           @ModelAttribute User user,
-                           @RequestParam(value = "roles", required = false) List<String> roleNames,
-                           @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
-                           RedirectAttributes redirectAttributes) {
+    public String editUser(
+            @PathVariable Integer id,
+            @RequestParam("username") String username,
+            @RequestParam("age") Integer age,
+            @RequestParam("email") String email,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
+            @RequestParam(value = "roles", required = false) List<String> roleNames,
+            RedirectAttributes redirectAttributes) {
 
-        User existingUser = userRepository.findById(id).orElseThrow(() ->
+        User existingUser = userService.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("Invalid user Id:" + id));
 
+        // Обновляем поля
+        existingUser.setUsername(username);
+        existingUser.setAge(age);
+        existingUser.setEmail(email);
 
-        existingUser.setUsername(user.getName());
-        existingUser.setAge(user.getAge());
-        existingUser.setEmail(user.getEmail());
-
-        if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
-            if (!user.getPassword().equals(confirmPassword)) {
+        // Обновляем пароль, если он указан
+        if (password != null && !password.trim().isEmpty()) {
+            if (!password.equals(confirmPassword)) {
                 redirectAttributes.addFlashAttribute("error", "Пароли не совпадают");
                 return "redirect:/admin/edit/" + id;
             }
-            existingUser.setPassword(user.getPassword());
+            existingUser.setPassword(password);
         }
 
-
+        // Обновляем роли
         Set<Role> roles = new HashSet<>();
         if (roleNames != null && !roleNames.isEmpty()) {
             for (String roleName : roleNames) {
-                Role role = roleRepository.findByName(roleName);
+                Role role = roleService.findByName(roleName);
                 if (role != null) {
                     roles.add(role);
                 }
@@ -116,19 +128,16 @@ public class AdminController {
         }
         existingUser.setRoles(roles);
 
-        userRepository.save(existingUser);
+        // Сохраняем изменения
+        userService.save(existingUser);
         redirectAttributes.addFlashAttribute("success", "Пользователь успешно обновлен");
         return "redirect:/admin";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteUser(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        try {
-            userRepository.deleteById(id);
-            redirectAttributes.addFlashAttribute("success", "Пользователь успешно удален");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Ошибка при удалении пользователя: " + e.getMessage());
-        }
+        userService.deleteById(id);
+        redirectAttributes.addFlashAttribute("success", "Пользователь успешно удален");
         return "redirect:/admin";
     }
 }

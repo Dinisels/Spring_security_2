@@ -9,38 +9,47 @@
 <div class="container mt-5">
     <h1>ДОБАВИТЬ НОВОГО ПОЛЬЗОВАТЕЛЯ</h1>
 
+    <!-- Сообщения об ошибках/успехе -->
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
 
-    <form th:action="@{/admin/add}" method="post" th:object="${user}">
+    <!-- Убрали th:object="${user}" -->
+    <form th:action="@{/admin/add}" method="post">
+
+        <!-- Поле username -->
         <div class="mb-3">
             <label for="username" class="form-label">Имя пользователя *</label>
-            <input type="text" class="form-control" id="username" name="username" th:field="*{username}" required>
+            <input type="text" class="form-control" id="username" name="username" required>
             <div class="form-text">Отображаемое имя пользователя</div>
         </div>
 
+        <!-- Поле age -->
         <div class="mb-3">
             <label for="age" class="form-label">Возраст *</label>
-            <input type="number" class="form-control" id="age" name="age" th:field="*{age}" required>
+            <input type="number" class="form-control" id="age" name="age" required>
         </div>
 
+        <!-- Поле email -->
         <div class="mb-3">
             <label for="email" class="form-label">Email *</label>
-            <input type="email" class="form-control" id="email" name="email" th:field="*{email}" required>
+            <input type="email" class="form-control" id="email" name="email" required>
             <div class="form-text">Email будет использоваться как логин</div>
         </div>
 
+        <!-- Поле password -->
         <div class="mb-3">
             <label for="password" class="form-label">Пароль *</label>
-            <input type="password" class="form-control" id="password" name="password" th:field="*{password}" required minlength="6">
+            <input type="password" class="form-control" id="password" name="password" required minlength="6">
             <div class="form-text">Минимум 6 символов</div>
         </div>
 
+        <!-- Поле confirmPassword -->
         <div class="mb-3">
             <label for="confirmPassword" class="form-label">Подтверждение пароля *</label>
             <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
         </div>
 
+        <!-- Роли (чекбоксы) -->
         <div class="mb-3">
             <label class="form-label">Роли</label>
             <div class="form-check">
@@ -58,6 +67,7 @@
             <div class="form-text">Выберите роли для пользователя</div>
         </div>
 
+        <!-- Кнопки -->
         <button type="submit" class="btn btn-primary">Сохранить</button>
         <a href="/admin" class="btn btn-secondary">Отмена</a>
     </form>
