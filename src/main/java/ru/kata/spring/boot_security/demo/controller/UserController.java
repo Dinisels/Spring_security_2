@@ -37,7 +37,6 @@ public class UserController {
 
         System.out.println("Looking for user with email: " + email);
 
-        // Ищем пользователя по email (так как email используется как логин)
         Optional<User> user = userService.findByEmail(email);
 
         if (user.isPresent()) {
@@ -47,13 +46,12 @@ public class UserController {
                     ", age: " + user.get().getAge());
         } else {
             System.out.println("User not found for email: " + email);
-            // Для отладки можно создать минимальный объект
             User minimalUser = new User();
             minimalUser.setUsername("Unknown");
             minimalUser.setEmail(email);
             model.addAttribute("user", minimalUser);
         }
 
-        return "user"; // Это должен быть ваш HTML файл (user.html)
+        return "user";
     }
 }

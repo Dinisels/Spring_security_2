@@ -6,6 +6,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
+import ru.kata.spring.boot_security.demo.dto.UserUpdateDto;
 import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
@@ -36,101 +38,76 @@ public class AdminController {
     @GetMapping("/add")
     public String addUserForm(Model model) {
         model.addAttribute("user", new User());
+        //тут еще и роли все передалть из ролсервиса
+
         return "admin/newUser";
     }
 
+
+
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable Integer id, Model model) {
-        User user = userService.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("Invalid user Id:" + id));
+
+        User user = userService.getById(id);
+
         model.addAttribute("user", user);
         return "admin/edit-user";
     }
 
-    @PostMapping("/add")
-    public String addUser(
-            @RequestParam("username") String username,
-            @RequestParam("age") Integer age,
-            @RequestParam("email") String email,
-            @RequestParam("password") String password,
-            @RequestParam("confirmPassword") String confirmPassword,
-            @RequestParam(value = "roles", required = false) List<String> roleNames,
-            RedirectAttributes redirectAttributes) {
+//    @PostMapping("/add")
+//    public String addUser(@RequestBody UserCreateDto dto,
+//                          RedirectAttributes redirectAttributes) {
+//
+//        try {
+//            userService.createUser(dto);
+//            redirectAttributes.addFlashAttribute("success",
+//                    "Пользователь успешно добавлен");
+//        } catch (RuntimeException e) {
+//            redirectAttributes.addFlashAttribute("error", e.getMessage());
+//            return "redirect:/admin/add";
+//        }
+//
+//        return "redirect:/admin";
+//    }
 
-        // Проверка паролей
-        if (!password.equals(confirmPassword)) {
-            redirectAttributes.addFlashAttribute("error", "Пароли не совпадают");
+    @PostMapping("/add")
+    public String addUser(@ModelAttribute UserCreateDto dto,
+                          RedirectAttributes redirectAttributes) {
+
+        try {
+            userService.createUser(dto);
+            redirectAttributes.addFlashAttribute("success", "Пользователь успешно добавлен");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/admin/add";
         }
 
-        // Создаем нового пользователя
-        User user = new User();
-        user.setUsername(username);
-        user.setAge(age);
-        user.setEmail(email);
-        user.setPassword(password);
-
-        // Обрабатываем роли
-        if (roleNames != null && !roleNames.isEmpty()) {
-            Set<Role> roles = new HashSet<>();
-            for (String roleName : roleNames) {
-                Role role = roleService.findByName(roleName);
-                if (role != null) {
-                    roles.add(role);
-                }
-            }
-            user.setRoles(roles);
-        }
-
-        // Сохраняем пользователя
-        userService.save(user);
-        redirectAttributes.addFlashAttribute("success", "Пользователь успешно добавлен");
         return "redirect:/admin";
     }
 
+
+
     @PostMapping("/edit/{id}")
-    public String editUser(
-            @PathVariable Integer id,
-            @RequestParam("username") String username,
-            @RequestParam("age") Integer age,
-            @RequestParam("email") String email,
-            @RequestParam(value = "password", required = false) String password,
-            @RequestParam(value = "confirmPassword", required = false) String confirmPassword,
-            @RequestParam(value = "roles", required = false) List<String> roleNames,
-            RedirectAttributes redirectAttributes) {
+    public String editUser(@PathVariable Integer id,
+                           @ModelAttribute UserUpdateDto dto,
+                           RedirectAttributes redirectAttributes) {
 
-        User existingUser = userService.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("Invalid user Id:" + id));
+        try {
 
-        // Обновляем поля
-        existingUser.setUsername(username);
-        existingUser.setAge(age);
-        existingUser.setEmail(email);
+            dto.setId(id);
+            userService.updateUser(dto);
 
-        // Обновляем пароль, если он указан
-        if (password != null && !password.trim().isEmpty()) {
-            if (!password.equals(confirmPassword)) {
-                redirectAttributes.addFlashAttribute("error", "Пароли не совпадают");
-                return "redirect:/admin/edit/" + id;
-            }
-            existingUser.setPassword(password);
+            redirectAttributes.addFlashAttribute("success",
+                    "Пользователь успешно обновлен");
+
+        } catch (RuntimeException e) {
+
+            redirectAttributes.addFlashAttribute("error",
+                    e.getMessage());
+
+            return "redirect:/admin/edit/" + id;
         }
 
-        // Обновляем роли
-        Set<Role> roles = new HashSet<>();
-        if (roleNames != null && !roleNames.isEmpty()) {
-            for (String roleName : roleNames) {
-                Role role = roleService.findByName(roleName);
-                if (role != null) {
-                    roles.add(role);
-                }
-            }
-        }
-        existingUser.setRoles(roles);
-
-        // Сохраняем изменения
-        userService.save(existingUser);
-        redirectAttributes.addFlashAttribute("success", "Пользователь успешно обновлен");
         return "redirect:/admin";
     }
 
