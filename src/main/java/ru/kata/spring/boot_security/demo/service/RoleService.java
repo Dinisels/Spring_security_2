@@ -6,24 +6,30 @@ import ru.kata.spring.boot_security.demo.Repository.RoleRepository;
 import ru.kata.spring.boot_security.demo.Repository.UserRepository;
 import ru.kata.spring.boot_security.demo.entity.Role;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class RoleService {
 
+    private final RoleRepository roleRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    public List<Role> findAll() {
-        return roleRepository.findAll();
+    public RoleService(RoleRepository roleRepository) {
+        this.roleRepository = roleRepository;
     }
 
-    public Role findByName(String name){
-        return roleRepository.findByName(name);
+    public Set<Role> getRolesByNames(List<String> names) {
+        if (names == null || names.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        List<String> roleNames = names.stream()
+                .map(name -> "ROLE_" + name)
+                .toList();
+
+        return new HashSet<>(roleRepository.findAllByNameIn(roleNames));
     }
-
-
-
-
 }
+
+

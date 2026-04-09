@@ -38,7 +38,6 @@ public class AdminController {
     @GetMapping("/add")
     public String addUserForm(Model model) {
         model.addAttribute("user", new User());
-        //тут еще и роли все передалть из ролсервиса
 
         return "admin/newUser";
     }
@@ -54,35 +53,14 @@ public class AdminController {
         return "admin/edit-user";
     }
 
-//    @PostMapping("/add")
-//    public String addUser(@RequestBody UserCreateDto dto,
-//                          RedirectAttributes redirectAttributes) {
-//
-//        try {
-//            userService.createUser(dto);
-//            redirectAttributes.addFlashAttribute("success",
-//                    "Пользователь успешно добавлен");
-//        } catch (RuntimeException e) {
-//            redirectAttributes.addFlashAttribute("error", e.getMessage());
-//            return "redirect:/admin/add";
-//        }
-//
-//        return "redirect:/admin";
-//    }
-
     @PostMapping("/add")
     public String addUser(@ModelAttribute UserCreateDto dto,
                           RedirectAttributes redirectAttributes) {
 
-        try {
             userService.createUser(dto);
             redirectAttributes.addFlashAttribute("success", "Пользователь успешно добавлен");
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/admin/add";
-        }
 
-        return "redirect:/admin";
+        return "redirect:/admin/dash";
     }
 
 
@@ -92,29 +70,17 @@ public class AdminController {
                            @ModelAttribute UserUpdateDto dto,
                            RedirectAttributes redirectAttributes) {
 
-        try {
+        userService.updateUser(id, dto);
+        redirectAttributes.addFlashAttribute("success",
+                "Пользователь успешно обновлен");
 
-            dto.setId(id);
-            userService.updateUser(dto);
-
-            redirectAttributes.addFlashAttribute("success",
-                    "Пользователь успешно обновлен");
-
-        } catch (RuntimeException e) {
-
-            redirectAttributes.addFlashAttribute("error",
-                    e.getMessage());
-
-            return "redirect:/admin/edit/" + id;
-        }
-
-        return "redirect:/admin";
+        return "redirect:/admin/dash";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteUser(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         userService.deleteById(id);
         redirectAttributes.addFlashAttribute("success", "Пользователь успешно удален");
-        return "redirect:/admin";
+        return "redirect:/admin/dash";
     }
 }

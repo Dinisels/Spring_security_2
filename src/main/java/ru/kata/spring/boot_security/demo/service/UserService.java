@@ -19,12 +19,12 @@ import java.util.Set;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final RoleService roleService;
 
     public UserService(UserRepository userRepository,
-                       RoleRepository roleRepository) {
+                       RoleService roleService) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
+        this.roleService = roleService;
     }
 
 
@@ -44,58 +44,41 @@ public class UserService {
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
 
-        if (dto.getRoles() != null && !dto.getRoles().isEmpty()) {
-            Set<Role> roles = new HashSet<>();
-
-            for (String roleName : dto.getRoles()) {
-                Role role = roleRepository.findByName(roleName);
-                if (role != null) {
-                    roles.add(role);
-                }
-            }
-
-            user.setRoles(roles);
-        }
+        user.setRoles(roleService.getRolesByNames(dto.getRoles()));
 
         return userRepository.save(user);
     }
 
     @Transactional
-    public User updateUser(UserUpdateDto dto) {
+    public User updateUser(Integer id, UserUpdateDto dto) {
 
-        User existingUser = userRepository.findById(dto.getId())
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        existingUser.setUsername(dto.getUsername());
-        existingUser.setAge(dto.getAge());
-        existingUser.setEmail(dto.getEmail());
+        user.setUsername(dto.getUsername());
+        user.setAge(dto.getAge());
 
-        // обновление пароля
+        // проверка email
+        if (!user.getEmail().equals(dto.getEmail()) &&
+                userRepository.existsByEmail(dto.getEmail())) {
+            throw new RuntimeException("Email уже используется");
+        }
+
+        user.setEmail(dto.getEmail());
+
+        // пароль
         if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
 
             if (!dto.getPassword().equals(dto.getConfirmPassword())) {
                 throw new RuntimeException("Пароли не совпадают");
             }
 
-            existingUser.setPassword(dto.getPassword());
+            user.setPassword(dto.getPassword());
         }
 
-        // обновление ролей
-        if (dto.getRoles() != null) {
+        user.setRoles(roleService.getRolesByNames(dto.getRoles()));
 
-            Set<Role> roles = new HashSet<>();
-
-            for (String roleName : dto.getRoles()) {
-                Role role = roleRepository.findByName(roleName);
-                if (role != null) {
-                    roles.add(role);
-                }
-            }
-
-            existingUser.setRoles(roles);
-        }
-
-        return userRepository.save(existingUser);
+        return userRepository.save(user);
     }
 
 
@@ -108,42 +91,10 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
     }
 
-    public Optional<User> findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
-    public User save(User user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email уже используется");
-        }
-        return userRepository.save(user);
-    }
-
-    public User update(User user) {
-       return userRepository.save(user);
-    }
 
     public void deleteById(Integer id) {
         userRepository.deleteById(id);
     }
 
-    public List<Role> findAllRoles() {
-        return roleRepository.findAll();
-    }
 
-    public Role findRoleByName(String name) {
-        return roleRepository.findByName(name);
-    }
-
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
-
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
 }

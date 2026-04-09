@@ -4,7 +4,6 @@ import java.util.List;
 
 public class UserUpdateDto {
 
-    private Integer id;
     private String username;
     private Integer age;
     private String email;
@@ -13,14 +12,6 @@ public class UserUpdateDto {
     private String confirmPassword;
 
     private List<String> roles;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 
     public String getUsername() {
         return username;

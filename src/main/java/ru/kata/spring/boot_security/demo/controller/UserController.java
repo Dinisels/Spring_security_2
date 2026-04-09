@@ -1,12 +1,15 @@
 package ru.kata.spring.boot_security.demo.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import ru.kata.spring.boot_security.demo.Repository.UserRepository;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
@@ -15,43 +18,20 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/user")
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-public class UserController {
-    private final UserService userService;
+    public class UserController {
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+        private final UserRepository userRepository;
 
-    @GetMapping
-    public String userPage(Model model) {
-        // Получаем текущего аутентифицированного пользователя
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String email;
-
-        if (principal instanceof UserDetails) {
-            // В вашем случае getUsername() возвращает email
-            email = ((UserDetails) principal).getUsername();
-        } else {
-            email = principal.toString();
+        @Autowired
+        public UserController(UserRepository userRepository) {
+            this.userRepository = userRepository;
         }
 
-        System.out.println("Looking for user with email: " + email);
-
-        Optional<User> user = userService.findByEmail(email);
-
-        if (user.isPresent()) {
-            model.addAttribute("user", user.get());
-            System.out.println("Found user: " + user.get().getUsername() +
-                    ", email: " + user.get().getEmail() +
-                    ", age: " + user.get().getAge());
-        } else {
-            System.out.println("User not found for email: " + email);
-            User minimalUser = new User();
-            minimalUser.setUsername("Unknown");
-            minimalUser.setEmail(email);
-            model.addAttribute("user", minimalUser);
+        @GetMapping("/user")
+        public String showUserInfo(Model model) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            Optional<User> user = userRepository.findByUsername(auth.getName());
+            model.addAttribute("user", user);
+            return "user";
         }
-
-        return "user";
-    }
 }
