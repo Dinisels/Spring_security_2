@@ -3,6 +3,7 @@ package ru.kata.spring.boot_security.demo.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -18,20 +19,16 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/user")
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public class UserController {
+public class UserController {
 
-        private final UserRepository userRepository;
+    @GetMapping
+    public String showUserInfo(
+            @AuthenticationPrincipal User user,
+            Model model
+    ) {
 
-        @Autowired
-        public UserController(UserRepository userRepository) {
-            this.userRepository = userRepository;
-        }
+        model.addAttribute("user", user);
 
-        @GetMapping("/user")
-        public String showUserInfo(Model model) {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            Optional<User> user = userRepository.findByUsername(auth.getName());
-            model.addAttribute("user", user);
-            return "user";
-        }
+        return "user";
+    }
 }

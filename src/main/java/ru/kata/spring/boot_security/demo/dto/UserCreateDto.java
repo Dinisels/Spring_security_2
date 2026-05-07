@@ -9,7 +9,7 @@ public class UserCreateDto {
     private String email;
     private String password;
     private String confirmPassword;
-    private List<String> roles;
+    private List<Long> roles;
 
     public String getUsername() {
         return username;
@@ -51,11 +51,11 @@ public class UserCreateDto {
         this.confirmPassword = confirmPassword;
     }
 
-    public List<String> getRoles() {
+    public List<Long> getRoles() {
         return roles;
     }
 
-    public void setRoles(List<String> roles) {
+    public void setRoles(List<Long> roles) {
         this.roles = roles;
     }
 }

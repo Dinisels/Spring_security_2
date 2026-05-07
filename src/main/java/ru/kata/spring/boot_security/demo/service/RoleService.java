@@ -19,16 +19,13 @@ public class RoleService {
         this.roleRepository = roleRepository;
     }
 
-    public Set<Role> getRolesByNames(List<String> names) {
-        if (names == null || names.isEmpty()) {
+    public Set<Role> getRolesByIds(List<Long> ids) {
+
+        if (ids == null || ids.isEmpty()) {
             return new HashSet<>();
         }
 
-        List<String> roleNames = names.stream()
-                .map(name -> "ROLE_" + name)
-                .toList();
-
-        return new HashSet<>(roleRepository.findAllByNameIn(roleNames));
+        return new HashSet<>(roleRepository.findAllById(ids));
     }
 }
 

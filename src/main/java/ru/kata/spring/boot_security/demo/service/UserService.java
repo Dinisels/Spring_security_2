@@ -44,7 +44,7 @@ public class UserService {
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
 
-        user.setRoles(roleService.getRolesByNames(dto.getRoles()));
+        user.setRoles(roleService.getRolesByIds(dto.getRoles()));
 
         return userRepository.save(user);
     }
@@ -76,7 +76,7 @@ public class UserService {
             user.setPassword(dto.getPassword());
         }
 
-        user.setRoles(roleService.getRolesByNames(dto.getRoles()));
+        user.setRoles(roleService.getRolesByIds(dto.getRoles()));
 
         return userRepository.save(user);
     }
