@@ -19,7 +19,7 @@ public class User implements UserDetails{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id ;
+    private Long id ;
 
     @Column(name = "name")
     private String username;
@@ -42,7 +42,7 @@ public class User implements UserDetails{
     )
     private Set<Role> roles = new HashSet<>();
 
-    public User(Integer id, String username, int age, String email) {
+    public User(Long id, String username, int age, String email) {
         this.id = id;
         this.username = username;
         this.age = age;
@@ -53,16 +53,20 @@ public class User implements UserDetails{
 
     }
 
-    public Integer getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
     public String getName() {
         return username;
+    }
+
+    public void setName(String name) {
+        this.username = name;
     }
 
     public void setUsername(String name) {

@@ -6,16 +6,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import ru.kata.spring.boot_security.demo.dto.UserCreateDto;
-import ru.kata.spring.boot_security.demo.dto.UserUpdateDto;
-import ru.kata.spring.boot_security.demo.entity.Role;
+
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.RoleServiceImpl;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Controller
 @RequestMapping("/admin")
@@ -28,59 +25,56 @@ public class AdminController {
     @Autowired
     private RoleService roleService;
 
-    @GetMapping
-    public String admin(Model model) {
-        List<User> users = userService.findAll();
-        model.addAttribute("users", users);
-        return "admin/dash";
+
+    @GetMapping()
+    public String getUserAddForm(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("newUser", new User());
+        return "/admin/adminPanel";
     }
 
-    @GetMapping("/add")
-    public String addUserForm(Model model) {
-        model.addAttribute("user", new User());
-
-        return "admin/newUser";
-    }
-
-
-
-    @GetMapping("/edit/{id}")
-    public String editUserForm(@PathVariable Integer id, Model model) {
-
-        User user = userService.getById(id);
-
-        model.addAttribute("user", user);
-        return "admin/edit-user";
-    }
-
-    @PostMapping("/add")
-    public String addUser(@ModelAttribute UserCreateDto dto,
+    @PostMapping
+    public String addUser(@ModelAttribute("newUser") User user,
+                          @RequestParam(value = "newRoles", required = false) String[] newRoles,
                           RedirectAttributes redirectAttributes) {
 
-            userService.createUser(dto);
+        try {
+            userService.saveUser(user, newRoles);
             redirectAttributes.addFlashAttribute("success", "Пользователь успешно добавлен");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
 
-        return "redirect:/admin/dash";
+        return "redirect:/admin";
+    }
+
+    @GetMapping("/updateUser")
+    public String getUserUpdateForm(@RequestParam("editUserId") Long editUserId,
+                                    Model model) {
+
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("newUser", new User());
+        model.addAttribute("existingUser", userService.getUserById(editUserId));
+
+        return "admin/adminPanel";
+    }
+
+    @PostMapping("/updateUser")
+    public String updateUser(@RequestParam("userId") long id,
+                             @ModelAttribute("existingUser") User user,
+                             @RequestParam(value = "selectedRoles", required = false) String[] selectedRoles) {
+        userService.updateUser(id, user, selectedRoles);
+        return "redirect:/admin";
+    }
+
+    @PostMapping("/deleteUser")
+    public String deleteUser(@RequestParam("userId") long id) {
+        userService.deleteUser(id);
+        return "redirect:/admin";
     }
 
 
 
-    @PostMapping("/edit/{id}")
-    public String editUser(@PathVariable Integer id,
-                           @ModelAttribute UserUpdateDto dto,
-                           RedirectAttributes redirectAttributes) {
-
-        userService.updateUser(id, dto);
-        redirectAttributes.addFlashAttribute("success",
-                "Пользователь успешно обновлен");
-
-        return "redirect:/admin/dash";
-    }
-
-    @GetMapping("/delete/{id}")
-    public String deleteUser(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        userService.deleteById(id);
-        redirectAttributes.addFlashAttribute("success", "Пользователь успешно удален");
-        return "redirect:/admin/dash";
-    }
 }

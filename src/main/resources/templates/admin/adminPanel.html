@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+</head>
+<body>
+
+<h2>Список пользователей</h2>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Имя</th>
+        <th>Email</th>
+        <th>Роли</th>
+        <th>Edit</th>
+        <th>Delete</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}"></td>
+        <td th:text="${user.name}"></td>
+        <td th:text="${user.email}"></td>
+        <td>
+            <span th:each="role : ${user.roles}"
+                  th:text="${role.name} + ' '"></span>
+        </td>
+
+        <td>
+            <form th:action="@{/admin/updateUser}" method="get">
+                <input type="hidden"
+                       name="editUserId"
+                       th:value="${user.id}">
+                <button type="submit">Edit</button>
+            </form>
+        </td>
+
+        <td>
+            <form th:action="@{/admin/deleteUser}" method="post">
+                <input type="hidden"
+                       th:name="${_csrf.parameterName}"
+                       th:value="${_csrf.token}"/>
+
+                <input type="hidden"
+                       name="userId"
+                       th:value="${user.id}"/>
+
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+
+    </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>Добавить пользователя</h2>
+
+<form th:action="@{/admin}" th:object="${newUser}" method="post">
+
+    <input type="hidden"
+           th:name="${_csrf.parameterName}"
+           th:value="${_csrf.token}"/>
+
+    <div>
+        <label>Имя:</label>
+        <input type="text" th:field="*{name}" required>
+    </div>
+
+    <div>
+        <label>Email:</label>
+        <input type="email" th:field="*{email}" required>
+    </div>
+
+    <div>
+        <label>Пароль:</label>
+        <input type="password" th:field="*{password}" required>
+    </div>
+
+    <div>
+        <label>Роли:</label>
+        <select name="newRoles" multiple>
+            <option th:each="role : ${roles}"
+                    th:value="${role.name}"
+                    th:text="${role.name}">
+            </option>
+        </select>
+    </div>
+
+    <br>
+
+    <button type="submit">Добавить</button>
+
+</form>
+
+<hr>
+
+<div th:if="${existingUser != null}">
+
+    <h2>Редактировать пользователя</h2>
+
+    <form th:action="@{/admin/updateUser}"
+          th:object="${existingUser}"
+          method="post">
+
+        <input type="hidden"
+               th:name="${_csrf.parameterName}"
+               th:value="${_csrf.token}"/>
+
+        <input type="hidden"
+               name="userId"
+               th:value="*{id}"/>
+
+        <div>
+            <label>Имя:</label>
+            <input type="text" th:field="*{name}">
+        </div>
+
+        <div>
+            <label>Email:</label>
+            <input type="email" th:field="*{email}">
+        </div>
+
+        <div>
+            <label>Пароль:</label>
+            <input type="password" th:field="*{password}">
+        </div>
+
+        <div>
+            <label>Роли:</label>
+
+            <select name="selectedRoles" multiple>
+
+                <option th:each="role : ${roles}"
+                        th:value="${role.name}"
+                        th:text="${role.name}"
+                        th:selected="${existingUser.roles.contains(role)}">
+                </option>
+
+            </select>
+
+        </div>
+
+        <br>
+
+        <button type="submit">Сохранить</button>
+
+    </form>
+
+</div>
+
+<div th:if="${success}" style="color:green">
+    <p th:text="${success}"></p>
+</div>
+
+<div th:if="${error}" style="color:red">
+    <p th:text="${error}"></p>
+</div>
+
+<form th:action="@{/logout}" method="post">
+    <input type="hidden"
+           th:name="${_csrf.parameterName}"
+           th:value="${_csrf.token}"/>
+    <button type="submit">Выйти</button>
+</form>
+
+</body>
+</html>

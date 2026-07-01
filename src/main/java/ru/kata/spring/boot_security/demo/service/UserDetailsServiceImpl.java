@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.service;
 
 
+import com.sun.xml.bind.v2.TODO;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,6 +22,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         this.userRepository = userRepository;
     }
 
+
+    // TODO МБ вот тут проблема будет из-за email'a в логине, надо будет протестить.
+
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
@@ -36,6 +40,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 //                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
 //                        .collect(Collectors.toList())
 //        );
+
+
     }
 }
 

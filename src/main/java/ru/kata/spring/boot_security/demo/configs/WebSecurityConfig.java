@@ -26,7 +26,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         System.out.println("WebSecurityConfig создан. PasswordEncoder: " + passwordEncoder);
     }
 
-    // ВАЖНО: Добавьте этот метод!
+
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(daoAuthenticationProvider());
@@ -37,20 +37,20 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .authorizeRequests()
                 .antMatchers("/", "/index", "/login", "/logout-success", "/logout", "/error").permitAll()
-                .antMatchers("/admin/**").hasAuthority("ADMIN")
-                .antMatchers("/user/**").hasAnyAuthority("USER", "ADMIN")
+                .antMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                .antMatchers("/user/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .formLogin()
-                .loginPage("/login")
+                //.loginPage("/login")
                 .successHandler(successUserHandler)
                 .permitAll()
                 .and()
                 .logout()
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/logout-success")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
+                //.logoutUrl("/logout")
+                //.logoutSuccessUrl("/logout-success")
+                //.invalidateHttpSession(true)
+                //.deleteCookies("JSESSIONID")
                 .permitAll();
     }
 

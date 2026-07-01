@@ -21,11 +21,21 @@ import java.util.Optional;
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class UserController {
 
+
+    private final UserRepository userRepository;
+
+    @Autowired
+    public UserController(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+
     @GetMapping
-    public String showUserInfo(
-            @AuthenticationPrincipal User user,
-            Model model
-    ) {
+    public String showUserInfo(Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         model.addAttribute("user", user);
 
