@@ -13,10 +13,9 @@ public interface UserService {
 
     User getUserById(long id);
 
-    void saveUser(User user, String[] newRoles);
+    void saveUser(User user, List<Long> roleIds);
 
     void deleteUser(long id);
 
-    void updateUser(long id, User user, String[] selectedRoles);
-
+    void updateUser(long id, User user, List<Long> selectedRoles);
 }

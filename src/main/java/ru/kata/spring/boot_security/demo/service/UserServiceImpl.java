@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import ru.kata.spring.boot_security.demo.Repository.RoleRepository;
 
 @Service
 @Transactional(readOnly = true)
@@ -49,13 +50,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void saveUser(User user, String[] newRoles) {
-        Optional<User> existingUser = userRepository.findByUsername(user.getUsername());
-        if (existingUser.isPresent()) {
-            throw new RuntimeException("User with email " + user.getUsername() + " already exists");
-        }
+    public void saveUser(User user, List<Long> roleIds) {
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        setUserRoles(user, newRoles);
+
+        setUserRoles(user, roleIds);
+
         userDao.saveUser(user);
     }
 
@@ -66,43 +66,53 @@ public class UserServiceImpl implements UserService {
         userDao.deleteUser(id);
     }
 
-    private void setUserRoles(User user, String[] selectedRoles) {
-        if (selectedRoles != null) {
-            Set<Role> roleSet = new HashSet<>();
-            for (String roleName : selectedRoles) {
-                roleSet.add(roleService.getRoleByName(roleName));
+    private void setUserRoles(User user, List<Long> roleIds) {
+        Set<Role> roles = new HashSet<>();
+
+        if (roleIds != null && !roleIds.isEmpty()) {
+            for (Long id : roleIds) {
+                Role role = roleService.getRoleById(id);
+                if (role != null) {
+                    roles.add(role);
+                }
             }
-            user.setRoles(roleSet);
         }
+
+        user.setRoles(roles);
     }
 
     // TODO тут username - это просто name !!!
 
     @Transactional
     @Override
-    public void updateUser(long id, User user, String[] selectedRoles) {
-        user.setId(id);
-        User existingUser = getUserById(user.getId());
+    public void updateUser(long id, User user, List<Long> selectedRoles) {
+        User existingUser = getUserById(id);
+
         existingUser.setName(user.getName());
         existingUser.setAge(user.getAge());
 
         if (!existingUser.getUsername().equals(user.getUsername())) {
-            // Если email изменился, проверяем не занят ли новый email
-            Optional<User> userWithNewEmail = userRepository.findByUsername(user.getUsername());
-            if (userWithNewEmail.isPresent() && userWithNewEmail.get().getId() != id) {
-                throw new RuntimeException("User with email " + user.getUsername() + " already exists");
+            Optional<User> userWithNewUsername =
+                    userRepository.findByUsername(user.getUsername());
+
+            if (userWithNewUsername.isPresent()
+                    && userWithNewUsername.get().getId() != id) {
+                throw new RuntimeException(
+                        "User with username " + user.getUsername() + " already exists"
+                );
             }
+
             existingUser.setUsername(user.getUsername());
         }
-
 
         if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
+
         setUserRoles(existingUser, selectedRoles);
+
         userDao.updateUser(existingUser);
     }
-
 
 
 }

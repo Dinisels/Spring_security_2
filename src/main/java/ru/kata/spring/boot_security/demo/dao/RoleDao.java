@@ -8,7 +8,7 @@ public interface RoleDao {
 
     List<Role> getAllRoles();
 
-    Role getRoleByName(String roleName);
+    Role getRoleById(Long id);
 
     void saveRole(Role role);
 

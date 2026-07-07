@@ -25,56 +25,41 @@ public class AdminController {
     @Autowired
     private RoleService roleService;
 
-
-    @GetMapping()
-    public String getUserAddForm(Model model) {
+    @GetMapping
+    public String adminPanel(Model model) {
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("roles", roleService.getAllRoles());
         model.addAttribute("newUser", new User());
-        return "/admin/adminPanel";
-    }
-
-    @PostMapping
-    public String addUser(@ModelAttribute("newUser") User user,
-                          @RequestParam(value = "newRoles", required = false) String[] newRoles,
-                          RedirectAttributes redirectAttributes) {
-
-        try {
-            userService.saveUser(user, newRoles);
-            redirectAttributes.addFlashAttribute("success", "Пользователь успешно добавлен");
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
-
-        return "redirect:/admin";
-    }
-
-    @GetMapping("/updateUser")
-    public String getUserUpdateForm(@RequestParam("editUserId") Long editUserId,
-                                    Model model) {
-
-        model.addAttribute("users", userService.getAllUsers());
-        model.addAttribute("roles", roleService.getAllRoles());
-        model.addAttribute("newUser", new User());
-        model.addAttribute("existingUser", userService.getUserById(editUserId));
-
         return "admin/adminPanel";
     }
 
-    @PostMapping("/updateUser")
-    public String updateUser(@RequestParam("userId") long id,
+    @PostMapping("/users")
+    public String addUser(@ModelAttribute("newUser") User user,
+                          @RequestParam(value = "newRoles", required = false) List<Long> newRoles) {
+        userService.saveUser(user, newRoles);
+        return "redirect:/admin";
+    }
+
+    @GetMapping("/users/{id}/edit")
+    public String getUserUpdateForm(@PathVariable Long id, Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("newUser", new User());
+        model.addAttribute("existingUser", userService.getUserById(id));
+        return "admin/adminPanel";
+    }
+
+    @PostMapping("/users/{id}")
+    public String updateUser(@PathVariable Long id,
                              @ModelAttribute("existingUser") User user,
-                             @RequestParam(value = "selectedRoles", required = false) String[] selectedRoles) {
+                             @RequestParam(value = "selectedRoles", required = false) List<Long> selectedRoles) {
         userService.updateUser(id, user, selectedRoles);
         return "redirect:/admin";
     }
 
-    @PostMapping("/deleteUser")
-    public String deleteUser(@RequestParam("userId") long id) {
+    @PostMapping("/users/{id}/delete")
+    public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return "redirect:/admin";
     }
-
-
-
 }
