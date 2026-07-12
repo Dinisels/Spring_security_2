@@ -33,12 +33,11 @@ public class UserController {
     @GetMapping
     public String showUserInfo(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
         User user = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
         model.addAttribute("user", user);
 
         return "user";
     }
+
 }
