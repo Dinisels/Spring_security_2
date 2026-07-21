@@ -62,11 +62,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(long id) {
-        getUserById(id);
+        getUserById(id); // TODO present посмотреть мб через него без гет юзер бай айди // тут если не будет то выикнуть иск4лючение TODO
         userDao.deleteUser(id);
     }
 
-    private void setUserRoles(User user, List<Long> roleIds) {
+    private void setUserRoles(User user, List<Long> roleIds) {  // TODO Тут сразу получить все роли одним запросом TODO
         Set<Role> roles = new HashSet<>();
 
         if (roleIds != null && !roleIds.isEmpty()) {
@@ -81,7 +81,7 @@ public class UserServiceImpl implements UserService {
         user.setRoles(roles);
     }
 
-    // TODO тут username - это просто name !!!
+    // TODO тут username - это email !!!
 
     @Transactional
     @Override
@@ -91,25 +91,25 @@ public class UserServiceImpl implements UserService {
         existingUser.setName(user.getName());
         existingUser.setAge(user.getAge());
 
-        if (!existingUser.getUsername().equals(user.getUsername())) {
+        if (!existingUser.getUsername().equals(user.getUsername())) { // TODO 98 - 103 убрать и выкинуть исключение TODO
             Optional<User> userWithNewUsername =
                     userRepository.findByUsername(user.getUsername());
 
             if (userWithNewUsername.isPresent()
                     && userWithNewUsername.get().getId() != id) {
                 throw new RuntimeException(
-                        "User with username " + user.getUsername() + " already exists"
+                        "User with username " + user.getUsername() + "already exists"
                 );
             }
 
             existingUser.setUsername(user.getUsername());
-        }
+        }  // TODO FindByUsername optional и если такое уже есть то просто исключение выкинуть и все.. TODO
 
         if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
             existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
-        setUserRoles(existingUser, selectedRoles);
+        setUserRoles(existingUser, selectedRoles); // TODO GetRolesByIdS и получать сразу все роли через дао
 
         userDao.updateUser(existingUser);
     }

@@ -40,4 +40,6 @@ public class UserController {
         return "user";
     }
 
+    //  TODO AutentificationPrincipal через это сделать, параметр просто в контроллер добавится
+
 }

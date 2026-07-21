@@ -25,28 +25,37 @@ public class AdminController {
     @Autowired
     private RoleService roleService;
 
+    //TODO главная страница получает только пользователей, а роли и пустой юзер передаются при обновлении\создании
+
+
     @GetMapping
     public String getUserAddForm(Model model) {
         model.addAttribute("users", userService.getAllUsers());
-        model.addAttribute("roles", roleService.getAllRoles());
-        model.addAttribute("newUser", new User());
+        //TODO model.addAttribute("roles", roleService.getAllRoles());  <-- перенести в гет маппинг апдейт юзер после получения юзера по айди
+        // TODO model.addAttribute("newUser", new User());
         return "admin/adminPanel";
     }
 
-    @GetMapping("/updateUser")
+    @GetMapping("/updateUser") // TODO тут {id} через pathvarible     editUserId - вот тут просто UserID т.к.
     public String getUserUpdateForm(@RequestParam(value = "editUserId") Long editUserId, Model model) {
         model.addAttribute("existingUser", userService.getUserById(editUserId));
+        // вот сюда перенести
         return "admin/adminPanel";
     }
 
-    @PostMapping("/saveUser")
+    @PostMapping("/saveUser") // TODO тут пусто
     public String saveUser(@ModelAttribute("newUser") User user,
-                           @RequestParam(value = "newRoles") List<Long> newRoles) {
+                           @RequestParam(value = "newRoles") List<Long> newRoles) { // TODO newRoles - RolesIds т.е. нормальные названия
         userService.saveUser(user, newRoles);
         return "redirect:/admin";
+        // TODO сделать гет маппинт и туда
+        //TODO сюда перенести 32ю строчку пустого юзера и добавить сюда роли
+
+
+
     }
 
-    @PostMapping("/updateUser")
+    @PostMapping("/updateUser") // TODO тут установить PutMapping просто на юзерс/id тут еще адрес править
     public String updateUser(@RequestParam("userId") long id,
                              @ModelAttribute("existingUser") User user,
                              @RequestParam(value = "selectedRoles", required = false) List<Long> selectedRoles) {
@@ -54,7 +63,7 @@ public class AdminController {
         return "redirect:/admin";
     }
 
-    @PostMapping("/deleteUser")
+    @PostMapping("/deleteUser") // TODO users\id через пасвариблся
     public String deleteUser(@RequestParam("userId") long id) {
         userService.deleteUser(id);
         return "redirect:/admin";

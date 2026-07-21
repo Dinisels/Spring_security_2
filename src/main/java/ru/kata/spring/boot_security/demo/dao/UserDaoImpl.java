@@ -25,7 +25,7 @@ public class UserDaoImpl implements UserDao{
     }
 
     @Override
-    public Optional<User> getUserById(long id) {
+    public Optional<User> getUserById(long id) { // TODO просто FindById  get подразумевает что есть, поэтому в сервисе гет и если что ошибка, а в дао файнд
         return Optional.ofNullable(em.find(User.class, id));
     }
 
