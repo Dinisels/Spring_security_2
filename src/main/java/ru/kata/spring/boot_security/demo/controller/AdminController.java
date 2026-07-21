@@ -6,7 +6,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.RoleServiceImpl;
@@ -15,7 +16,7 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 import java.util.List;
 
 @Controller
-@RequestMapping("/admin")
+@RequestMapping("/admin/user")
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
@@ -26,46 +27,72 @@ public class AdminController {
     private RoleService roleService;
 
     //TODO главная страница получает только пользователей, а роли и пустой юзер передаются при обновлении\создании
+    //TODO сделать гет маппинг для создании
+    //TODO привести адреса согласно рест
 
+//    GET    /admin/user
+//    GET    /admin/user/new
+//    POST   /admin/user
+//    GET    /admin/user/{id}/edit
+//    PUT    /admin/user/{id}
+//    DELETE /admin/user/{id}
 
     @GetMapping
+    public String getAdminPanel(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        return "admin/adminPanel";
+    }
+
+    @GetMapping("/new")
     public String getUserAddForm(Model model) {
         model.addAttribute("users", userService.getAllUsers());
-        //TODO model.addAttribute("roles", roleService.getAllRoles());  <-- перенести в гет маппинг апдейт юзер после получения юзера по айди
-        // TODO model.addAttribute("newUser", new User());
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("newUser", new User());
+
         return "admin/adminPanel";
     }
 
-    @GetMapping("/updateUser") // TODO тут {id} через pathvarible     editUserId - вот тут просто UserID т.к.
-    public String getUserUpdateForm(@RequestParam(value = "editUserId") Long editUserId, Model model) {
-        model.addAttribute("existingUser", userService.getUserById(editUserId));
-        // вот сюда перенести
+    @PostMapping
+    public String saveUser(
+            @ModelAttribute("newUser") User user,
+            @RequestParam("newRoles") List<Long> roleIds
+    ) {
+        userService.saveUser(user, roleIds);
+        return "redirect:/admin/user";
+    }
+
+
+    //TODO сделать через PathVarible
+    @GetMapping("/{userId}/edit")
+    public String getUserUpdateForm(
+            @PathVariable Long userId,
+            Model model
+    ) {
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("existingUser", userService.getUserById(userId));
+
         return "admin/adminPanel";
     }
 
-    @PostMapping("/saveUser") // TODO тут пусто
-    public String saveUser(@ModelAttribute("newUser") User user,
-                           @RequestParam(value = "newRoles") List<Long> newRoles) { // TODO newRoles - RolesIds т.е. нормальные названия
-        userService.saveUser(user, newRoles);
-        return "redirect:/admin";
-        // TODO сделать гет маппинт и туда
-        //TODO сюда перенести 32ю строчку пустого юзера и добавить сюда роли
+    //TODO здесь пут маппинг
+    @PutMapping("/{id}")
+    public String updateUser(
+            @PathVariable Long id,
+            @ModelAttribute("existingUser") User user,
+            @RequestParam(value = "selectedRoles", required = false) List<Long> roleIds) {
 
-
-
+        userService.updateUser(id, user, roleIds);
+        return "redirect:/admin/user";
     }
 
-    @PostMapping("/updateUser") // TODO тут установить PutMapping просто на юзерс/id тут еще адрес править
-    public String updateUser(@RequestParam("userId") long id,
-                             @ModelAttribute("existingUser") User user,
-                             @RequestParam(value = "selectedRoles", required = false) List<Long> selectedRoles) {
-        userService.updateUser(id, user, selectedRoles);
-        return "redirect:/admin";
-    }
-
-    @PostMapping("/deleteUser") // TODO users\id через пасвариблся
-    public String deleteUser(@RequestParam("userId") long id) {
+    @DeleteMapping("/{id}")
+    public String deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return "redirect:/admin";
+        return "redirect:/admin/user";
     }
+
+
 }
+
+

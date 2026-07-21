@@ -25,7 +25,7 @@ public class UserDaoImpl implements UserDao{
     }
 
     @Override
-    public Optional<User> getUserById(long id) { // TODO просто FindById  get подразумевает что есть, поэтому в сервисе гет и если что ошибка, а в дао файнд
+    public Optional<User> FindById(long id) { // TODO просто FindById  get подразумевает что есть, поэтому в сервисе гет и если что ошибка, а в дао файнд
         return Optional.ofNullable(em.find(User.class, id));
     }
 
@@ -45,6 +45,11 @@ public class UserDaoImpl implements UserDao{
     @Override
     public void updateUser(User user) {
         em.merge(user);
+    }
+
+    @Override
+    public boolean existsById(long id) {
+        return em.find(User.class, id) != null;
     }
 
 

@@ -16,30 +16,21 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 
 import java.util.Optional;
 
+
+//  TODO AutentificationPrincipal через это сделать
+
+
 @Controller
 @RequestMapping("/user")
 @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public class UserController {
 
-
-    private final UserRepository userRepository;
-
-    @Autowired
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-
     @GetMapping
-    public String showUserInfo(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User user = userRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        model.addAttribute("user", user);
+    public String showUserInfo(
+            @AuthenticationPrincipal User user,
+            Model model) {
 
+        model.addAttribute("user", user);
         return "user";
     }
-
-    //  TODO AutentificationPrincipal через это сделать, параметр просто в контроллер добавится
-
 }

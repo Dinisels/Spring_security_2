@@ -9,7 +9,7 @@ public interface UserDao {
 
     List<User> getAllUsers();
 
-    Optional<User> getUserById(long id);
+    Optional<User> FindById(long id);
 
     void saveUser(User user);
 
@@ -17,5 +17,5 @@ public interface UserDao {
 
     void updateUser(User user);
 
-
+    boolean existsById(long id);
 }

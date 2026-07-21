@@ -1,5 +1,7 @@
 <!doctype html>
-<html lang="en" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
@@ -41,7 +43,7 @@
     <div class="container-fluid d-flex justify-content-between align-items-center">
 
         <span class="navbar-brand text-start">
-            <span th:text="${#authentication.principal.email}"></span>
+            <span th:text="${user.email}"></span>
             with roles:
             <span th:each="authority : ${#authentication.authorities}"
                   th:text="${authority.authority.substring(5)} + ' '"></span>
@@ -93,13 +95,13 @@
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr th:if="${#authentication != null}">
-                                    <td th:text="${#authentication.principal.id}"></td>
-                                    <td th:text="${#authentication.principal.name}"></td>
-                                    <td th:text="${#authentication.principal.age}"></td>
-                                    <td th:text="${#authentication.principal.email}"></td>
+                                <tr th:if="${user != null}">
+                                    <td th:text="${user.id}"></td>
+                                    <td th:text="${user.name}"></td>
+                                    <td th:text="${user.age}"></td>
+                                    <td th:text="${user.email}"></td>
                                     <td>
-                                    <span th:each="role, iterStat : ${#authentication.principal.roles}">
+                                    <span th:each="role, iterStat : ${user.roles}">
                                         <span th:text="${role.name.substring(5)}"></span>
                                         <span th:if="${!iterStat.last}">, </span>
                                     </span>

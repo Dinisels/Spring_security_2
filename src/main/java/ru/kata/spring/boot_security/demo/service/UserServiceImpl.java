@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(long id) {
-        return userDao.getUserById(id)
+        return userDao.FindById(id)
                 .orElseThrow(() ->
                         new EntityNotFoundException("User with id " + id + " not found"));
     }
@@ -59,60 +59,71 @@ public class UserServiceImpl implements UserService {
         userDao.saveUser(user);
     }
 
+
+// TODO тут если не будет то выикнуть иск4лючение TODO existsById
     @Override
     @Transactional
     public void deleteUser(long id) {
-        getUserById(id); // TODO present посмотреть мб через него без гет юзер бай айди // тут если не будет то выикнуть иск4лючение TODO
+        if (!userDao.existsById(id)) {
+            throw new EntityNotFoundException(
+                    "User with id " + id + " not found"
+            );
+        }
         userDao.deleteUser(id);
     }
 
-    private void setUserRoles(User user, List<Long> roleIds) {  // TODO Тут сразу получить все роли одним запросом TODO
-        Set<Role> roles = new HashSet<>();
+// TODO Тут сразу получить все роли одним запросом TODO
+//    private void setUserRoles(User user, List<Long> roleIds) {
+//        Set<Role> roles = new HashSet<>();
+//
+//        if (roleIds != null && !roleIds.isEmpty()) {
+//            for (Long id : roleIds) {
+//                Role role = roleService.getRoleById(id);
+//                if (role != null) {
+//                    roles.add(role);
+//                }
+//            }
+//        }
+//
+//        user.setRoles(roles);
+//    }
 
-        if (roleIds != null && !roleIds.isEmpty()) {
-            for (Long id : roleIds) {
-                Role role = roleService.getRoleById(id);
-                if (role != null) {
-                    roles.add(role);
-                }
-            }
-        }
-
-        user.setRoles(roles);
+    private void setUserRoles(User user, List<Long> roleIds) {
+        user.setRoles(roleService.getRolesByIds(roleIds));
     }
 
     // TODO тут username - это email !!!
-
-    @Transactional
+    // TODO 98 - 103 убрать и выкинуть исключение TODO
     @Override
-    public void updateUser(long id, User user, List<Long> selectedRoles) {
+    @Transactional
+    public void updateUser(
+            long id,
+            User user,
+            List<Long> roleIds) {
+
         User existingUser = getUserById(id);
+
+        if (userRepository.existsByEmailAndIdNot(user.getEmail(), id)) {
+            throw new IllegalArgumentException(
+                    "User with email " + user.getEmail() + " already exists"
+            );
+        }
 
         existingUser.setName(user.getName());
         existingUser.setAge(user.getAge());
+        existingUser.setEmail(user.getEmail());
 
-        if (!existingUser.getUsername().equals(user.getUsername())) { // TODO 98 - 103 убрать и выкинуть исключение TODO
-            Optional<User> userWithNewUsername =
-                    userRepository.findByUsername(user.getUsername());
+        if (user.getPassword() != null
+                && !user.getPassword().trim().isEmpty()) {
 
-            if (userWithNewUsername.isPresent()
-                    && userWithNewUsername.get().getId() != id) {
-                throw new RuntimeException(
-                        "User with username " + user.getUsername() + "already exists"
-                );
-            }
-
-            existingUser.setUsername(user.getUsername());
-        }  // TODO FindByUsername optional и если такое уже есть то просто исключение выкинуть и все.. TODO
-
-        if (user.getPassword() != null && !user.getPassword().trim().isEmpty()) {
-            existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+            existingUser.setPassword(
+                    passwordEncoder.encode(user.getPassword())
+            );
         }
 
-        setUserRoles(existingUser, selectedRoles); // TODO GetRolesByIdS и получать сразу все роли через дао
+        setUserRoles(existingUser, roleIds);
 
         userDao.updateUser(existingUser);
     }
-
 
 }
